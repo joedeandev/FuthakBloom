@@ -1,0 +1,12 @@
+manifest:
+  remotes:
+    - name: FuthakBloom
+      url-base: https://github.com/joedeandev
+  projects:
+    - name: FuthakBloom
+      remote: FuthakBloom
+      revision: main
+      clone-depth: 1
+      import: app/west.yml
+  self:
+    path: config
