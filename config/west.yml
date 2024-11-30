@@ -1,12 +1,18 @@
 manifest:
   remotes:
     - name: FuthakBloom
-      url-base: https://github.com/joedeandev
+      url-base: https://github.com/jxddk
+    - name: urob
+      url-base: https://github.com/urob
   projects:
     - name: FuthakBloom
       remote: FuthakBloom
       revision: main
       clone-depth: 1
       import: app/west.yml
+    - name: zmk-helpers
+      remote: urob
+      revision: main
+      clone-depth: 1
   self:
     path: config

@@ -1,0 +1,263 @@
+#include <behaviors.dtsi>
+#include <behaviors/mouse_keys.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/mouse.h>
+#include <dt-bindings/zmk/bt.h>
+#include "../app/zmk-helpers/include/zmk-helpers/helper.h"
+#include "../config/defines.h"
+
+// ┌───────────────────────────────────────────────────────────────────────────┐
+//                                  HOMEROW MODS                                
+// └───────────────────────────────────────────────────────────────────────────┘
+#define MAKE_HRM(NAME, HOLD, TAP, TRIGGER_POS) \
+    ZMK_BEHAVIOR(NAME, hold_tap, \
+        flavor = "balanced"; \
+        tapping-term-ms = <200>; \
+        quick-tap-ms = <175>; \
+        require-prior-idle-ms = <150>; \
+        bindings = <HOLD>, <TAP>; \
+        hold-trigger-key-positions = <TRIGGER_POS>; \
+        hold-trigger-on-release; \
+    )
+MAKE_HRM(hml, &kp, &kp, KEYS_R)
+MAKE_HRM(hmr, &kp, &kp, KEYS_L)
+MAKE_HRM(hmll, &mo, &kp, KEYS_R)
+MAKE_HRM(hmrl, &mo, &kp, KEYS_L)
+
+// ┌───────────────────────────────────────────────────────────────────────────┐
+//                                   MOD MORPHS                                 
+// └───────────────────────────────────────────────────────────────────────────┘
+#define SIMPLE_MORPH(NAME, MOD, BINDING1, BINDING2) \
+    ZMK_BEHAVIOR(NAME, mod_morph, \
+        mods = <(MOD_L ## MOD|MOD_R ## MOD)>; \
+        bindings = <BINDING1>, <BINDING2>; \
+    )
+// Improved punctuation morphs
+SIMPLE_MORPH(morph_comma, SFT, &kp COMMA, &kp SEMICOLON)
+SIMPLE_MORPH(morph_dot, SFT, &kp DOT, &kp COLON)
+SIMPLE_MORPH(morph_punct, SFT, &kp QUESTION, &kp EXCLAMATION)
+
+// ┌───────────────────────────────────────────────────────────────────────────┐
+//                                     MACROS                                   
+// └───────────────────────────────────────────────────────────────────────────┘
+// Smart-number logic via sticky layers
+#define NUMBER_STICKY_LAYER(NUM) \
+    / { \
+        macros { \
+            nsl ## NUM: nsl ## NUM{ \
+                compatible = "zmk,behavior-macro"; \
+                #binding-cells = <0>; \
+                bindings = <&macro_tap &kp NUMBER_ ## NUM>, \
+                           <&macro_tap &sl 1>; \
+            }; \
+        }; \
+    };
+&sl { release-after-ms = <1500>; };
+NUMBER_STICKY_LAYER(0)
+NUMBER_STICKY_LAYER(1)
+NUMBER_STICKY_LAYER(2)
+NUMBER_STICKY_LAYER(3)
+NUMBER_STICKY_LAYER(4)
+NUMBER_STICKY_LAYER(5)
+NUMBER_STICKY_LAYER(6)
+NUMBER_STICKY_LAYER(7)
+NUMBER_STICKY_LAYER(8)
+NUMBER_STICKY_LAYER(9)
+
+// One-key GUI-number combo
+#define COMMAND_NUMBER_PRESS(NUM) \
+    / { \
+        macros { \
+            macro_cmdn ## NUM: macro_cmdn ## NUM{ \
+                compatible = "zmk,behavior-macro"; \
+                #binding-cells = <0>; \
+                bindings = <&macro_press &kp LEFT_GUI>, \
+                           <&macro_tap &kp NUMBER_ ## NUM>, \
+                           <&macro_release &kp LEFT_GUI>; \
+            }; \
+        }; \
+    };
+COMMAND_NUMBER_PRESS(0)
+COMMAND_NUMBER_PRESS(1)
+COMMAND_NUMBER_PRESS(2)
+COMMAND_NUMBER_PRESS(3)
+COMMAND_NUMBER_PRESS(4)
+COMMAND_NUMBER_PRESS(5)
+COMMAND_NUMBER_PRESS(6)
+COMMAND_NUMBER_PRESS(7)
+COMMAND_NUMBER_PRESS(8)
+COMMAND_NUMBER_PRESS(9)
+
+// Macro ALT+Delete for deleting words
+/ {
+    macros {
+        delete_word: delete_word {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&macro_press &kp LALT>
+                , <&macro_tap &kp BACKSPACE>
+                , <&macro_release &kp LALT>
+                ;
+        };
+    };
+};
+
+
+// ┌───────────────────────────────────────────────────────────────────────────┐
+//                                     COMBOS                                   
+// └───────────────────────────────────────────────────────────────────────────┘
+#define COMBO_LAYERS L_BASE L_NUMBER
+#define COMBO_ALL_LAYERS L_BASE L_NUMBER L_NAVMOUSE L_CONTROL
+#define COMBO_TIME 50
+#define COMBO_SLOW_TIME 150
+// Adjacent-key combos
+// Enclosing glyphs
+ZMK_COMBO(combo_l_ane, &kp LESS_THAN, LT0 LT1, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_r_ane, &kp GREATER_THAN, RT0 RT1, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_l_prn, &kp LEFT_PARENTHESIS, LT1 LT2, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_r_prn, &kp RIGHT_PARENTHESIS, RT1 RT2, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_l_bre, &kp LEFT_BRACE, LT2 LT3, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_r_bre, &kp RIGHT_BRACE, RT2 RT3, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_l_brk, &kp LEFT_BRACKET, LT3 LT4, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_r_brk, &kp RIGHT_BRACKET, RT3 RT4, COMBO_LAYERS, COMBO_TIME)
+// Textual symbols
+ZMK_COMBO(combo_uscre, &kp UNDERSCORE, LB1 LB2, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_minus, &kp MINUS, LB2 LB3, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_bslsh, &kp BACKSLASH, RB1 RB2, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_slash, &kp SLASH, RB2 RB3, COMBO_LAYERS, COMBO_TIME)
+// Other symbols
+ZMK_COMBO(combo_caret, &kp CARET, LB3 LB4, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_dsign, &kp DOLLAR, RB3 RB4, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_oropr, &kp PIPE, LB0 LB1, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_andop, &kp AMPERSAND, RB0 RB1, COMBO_LAYERS, COMBO_TIME)
+// Symmetrical opposite-hand combos
+// Control
+ZMK_COMBO(combo_pg_up, &kp PAGE_UP, LT0 RT0, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_pg_dn, &kp PAGE_DOWN, LB0 RB0, COMBO_LAYERS, COMBO_TIME)
+// Other symbols
+ZMK_COMBO(combo_pound, &kp HASH, LT1 RT1, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_perct, &kp PERCENT, LT2 RT2, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_asign, &kp AT_SIGN, LT3 RT3, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_tilde, &kp TILDE, LT4 RT4, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_astrk, &kp ASTERISK, LB1 RB1, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_pluss, &kp PLUS, LB2 RB2, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_equal, &kp EQUAL, LB3 RB3, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_grave, &kp GRAVE, LB4 RB4, COMBO_LAYERS, COMBO_TIME)
+// Same-hand homerow combos
+ZMK_COMBO(combo_delte, &kp DELETE, LM0 LM1, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_abspc, &delete_word, LM0 LM2, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_insrt, &kp INSERT, LM0 LM3, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_capsl, &kp CAPSLOCK, LM0 LM4, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_pscrn, &kp PRINTSCREEN, RM0 RM1, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_khome, &kp HOME, RM0 RM2, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_kpend, &kp END, RM0 RM3, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_nlock, &kp KP_NUMLOCK, RM0 RM4, COMBO_LAYERS, COMBO_TIME)
+// Thumb combos
+ZMK_COMBO(combo_enter, &kp ENTER, LH0 RH0, COMBO_ALL_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_wstab, &kp TAB, LH0 RH1, COMBO_ALL_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_escap, &kp ESCAPE, LH1 RH1, COMBO_ALL_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_bspce, &kp BACKSPACE, LH1 RH0, COMBO_ALL_LAYERS, COMBO_TIME)
+// Thumb key-repeat overload combos
+ZMK_COMBO(combo_cmdn0, &macro_cmdn0, LH0 LM0, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+ZMK_COMBO(combo_cmdn1, &macro_cmdn1, LH0 LT3, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+ZMK_COMBO(combo_cmdn2, &macro_cmdn2, LH0 LT2, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+ZMK_COMBO(combo_cmdn3, &macro_cmdn3, LH0 LT1, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+ZMK_COMBO(combo_cmdn4, &macro_cmdn4, LH0 LM3, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+ZMK_COMBO(combo_cmdn5, &macro_cmdn5, LH0 LM2, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+ZMK_COMBO(combo_cmdn6, &macro_cmdn6, LH0 LM1, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+ZMK_COMBO(combo_cmdn7, &macro_cmdn7, LH0 LB3, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+ZMK_COMBO(combo_cmdn8, &macro_cmdn8, LH0 LB2, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+ZMK_COMBO(combo_cmdn9, &macro_cmdn9, LH0 LB1, COMBO_ALL_LAYERS, COMBO_SLOW_TIME)
+// Opposite-corner combos
+// Special
+ZMK_COMBO(combo_ctr_1, &to L_CONTROL, LB4 RT4, COMBO_LAYERS, COMBO_TIME)
+ZMK_COMBO(combo_ctr_2, &to L_CONTROL, LT4 RB4, COMBO_LAYERS, COMBO_TIME)
+
+// ┌───────────────────────────────────────────────────────────────────────────┐
+//                                      MISC                                    
+// └───────────────────────────────────────────────────────────────────────────┘
+// Shift
+&caps_word {
+    continue-list = <UNDERSCORE MINUS>;
+};
+&sk {
+    quick-release;
+};
+ZMK_BEHAVIOR(tshift, tap_dance,
+    tapping-term-ms = <300>;
+    bindings = <&sk RSHIFT>, <&caps_word>;
+)
+// Number
+ZMK_BEHAVIOR(tnumber, tap_dance,
+    tapping-term-ms = <300>;
+    bindings = <&sl L_NUMBER>, <&to L_NAVMOUSE>;
+)
+
+// ┌───────────────────────────────────────────────────────────────────────────┐
+//                                     LAYERS                                   
+// └───────────────────────────────────────────────────────────────────────────┘
+
+ZMK_LAYER(base,
+// ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+                                                                                                                            X_UPR0                                                                                                                         
+// ├────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬────────┤
+     X_LTP0   &kp Q                 &kp W                 &kp F                 &kp P                 &kp G                 X_MTP0   &kp J                 &kp L                 &kp U                 &kp Y                 &kp SINGLE_QUOTE      X_RTP0  
+// ├────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┤
+     X_LMD0   &hml LEFT_GUI A       &hml LEFT_ALT R       &hml LEFT_CONTROL S   &hml LEFT_SHIFT T     &hmll L_NAVMOUSE D    X_MMD0   &hmrl L_NUMBER H      &hmr RIGHT_SHIFT N    &hmr RIGHT_CONTROL E  &hmr RIGHT_ALT I      &hmr RIGHT_GUI O      X_RMD0  
+// ├────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┤
+     X_LBM0   &kp Z                 &kp X                 &kp C                 &kp V                 &kp B                 X_MBM0   &kp K                 &kp M                 &morph_comma          &morph_dot            &morph_punct          X_RBM0  
+// ├────────┴─────────────────────┴─────────────────────┴─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┴─────────────────────┴─────────────────────┴────────┤
+     X_LTM0                                                                     &kp SPACE             &key_repeat           X_MTM0   &tnumber              &tshift                                                                                 X_RTM0  
+// ├──────────────────────────────────────────────────────────────────────────┴─────────────────────┴─────────────────────┴────────┴─────────────────────┴─────────────────────┴──────────────────────────────────────────────────────────────────────────┤
+                                                                                                                            X_LWR0                                                                                                                         
+// └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+)
+
+ZMK_LAYER(number,
+// ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+                                                                                                                            X_UPR1                                                                                                                         
+// ├────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬────────┤
+     X_LTP1   &trans                &nsl1                 &nsl2                 &nsl3                 &trans                X_MTP1   &trans                &trans                &trans                &trans                &trans                X_RTP1  
+// ├────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┤
+     X_LMD1   &nsl0                 &nsl4                 &nsl5                 &nsl6                 &trans                X_MMD1   &trans                &trans                &trans                &trans                &trans                X_RMD1  
+// ├────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┤
+     X_LBM1   &trans                &nsl7                 &nsl8                 &nsl9                 &trans                X_MBM1   &trans                &trans                &trans                &trans                &trans                X_RBM1  
+// ├────────┴─────────────────────┴─────────────────────┴─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┴─────────────────────┴─────────────────────┴────────┤
+     X_LTM1                                                                     &trans                &trans                X_MTM1   &trans                &trans                                                                                  X_RTM1  
+// ├──────────────────────────────────────────────────────────────────────────┴─────────────────────┴─────────────────────┴────────┴─────────────────────┴─────────────────────┴──────────────────────────────────────────────────────────────────────────┤
+                                                                                                                            X_LWR1                                                                                                                         
+// └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+)
+
+ZMK_LAYER(navmouse,
+// ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+                                                                                                                            X_UPR2                                                                                                                         
+// ├────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬────────┤
+     X_LTP2   &trans                &trans                &trans                &trans                &trans                X_MTP2   &mkp MB3              &msc SCRL_LEFT        &msc SCRL_DOWN        &msc SCRL_UP          &msc SCRL_RIGHT       X_RTP2  
+// ├────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┤
+     X_LMD2   &trans                &trans                &trans                &trans                &trans               X_MMD2    &mkp MB2              &kp LEFT_ARROW        &kp DOWN_ARROW        &kp UP_ARROW          &kp RIGHT_ARROW       X_RMD2  
+// ├────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┤
+     X_LBM2   &trans                &trans                &trans                &trans                &trans                X_MBM2   &mkp MB1              &mmv MOVE_LEFT        &mmv MOVE_DOWN        &mmv MOVE_UP          &mmv MOVE_RIGHT       X_RBM2  
+// ├────────┴─────────────────────┴─────────────────────┴─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┴─────────────────────┴─────────────────────┴────────┤
+     X_LTM2                                                                     &trans                &trans                X_MTM2   &to L_BASE            &trans                                                                                  X_RTM2  
+// ├──────────────────────────────────────────────────────────────────────────┴─────────────────────┴─────────────────────┴────────┴─────────────────────┴─────────────────────┴──────────────────────────────────────────────────────────────────────────┤
+                                                                                                                            X_LWR2                                                                                                                         
+// └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+)
+
+ZMK_LAYER(control,
+// ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+                                                                                                                            X_UPR3                                                                                                                         
+// ├────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┬────────┤
+     X_LTP3   &sys_reset            &kp F1                &kp F2                &kp F3                &kp F10               X_MTP3   &bt BT_CLR_ALL        &bt BT_NXT            &bt BT_PRV            &bt BT_CLR            &sys_reset            X_RTP3  
+// ├────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┤
+     X_LMD3   &to L_BASE            &kp F4                &kp F5                &kp F6                &kp F11               X_MMD3   &kp C_MUTE            &kp C_BRI_UP          &kp C_BRI_DN          &kp K_APPLICATION     &to L_BASE            X_RMD3  
+// ├────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┼────────┤
+     X_LBM3   &to L_ALTERNATE_1     &kp F7                &kp F8                &kp F9                &kp F12               X_MBM3   &kp C_NEXT            &kp C_PREV            &kp C_PLAY_PAUSE      &kp C_VOL_UP          &kp C_VOL_DN          X_RBM3  
+// ├────────┴─────────────────────┴─────────────────────┴─────────────────────┼─────────────────────┼─────────────────────┼────────┼─────────────────────┼─────────────────────┼─────────────────────┴─────────────────────┴─────────────────────┴────────┤
+     X_LTM3                                                                     &trans                &trans                X_MTM3   &trans                &trans                                                                                  X_RTM3  
+// ├──────────────────────────────────────────────────────────────────────────┴─────────────────────┴─────────────────────┴────────┴─────────────────────┴─────────────────────┴──────────────────────────────────────────────────────────────────────────┤
+                                                                                                                            X_LWR3                                                                                                                         
+// └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+)
